@@ -714,25 +714,27 @@ const testimonialsSlider = {
     },
 
     createDots() {
-        this.cards.forEach((_, index) => {
+        this.dotsContainer.innerHTML = '';
+        const totalSlides = Math.ceil(this.cards.length / this.cardsPerView);
+        for (let i = 0; i < totalSlides; i++) {
             const dot = document.createElement('div');
             dot.classList.add('dot');
-            if (index === 0) dot.classList.add('active');
-            dot.addEventListener('click', () => this.goToSlide(index));
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => this.goToSlide(i * this.cardsPerView));
             this.dotsContainer.appendChild(dot);
-        });
+        }
     },
 
     setupEventListeners() {
         this.prevBtn.addEventListener('click', () => {
             if (this.currentIndex > 0) {
-                this.goToSlide(this.currentIndex - 1);
+                this.goToSlide(this.currentIndex - this.cardsPerView);
             }
         });
 
         this.nextBtn.addEventListener('click', () => {
             if (this.currentIndex < this.cards.length - this.cardsPerView) {
-                this.goToSlide(this.currentIndex + 1);
+                this.goToSlide(this.currentIndex + this.cardsPerView);
             }
         });
 
@@ -754,6 +756,7 @@ const testimonialsSlider = {
                 if (newCardsPerView !== this.cardsPerView) {
                     this.cardsPerView = newCardsPerView;
                     this.currentIndex = 0;
+                    this.createDots();
                     this.updateSlider();
                 }
             }, 250);
@@ -762,12 +765,14 @@ const testimonialsSlider = {
 
     updateSlider() {
         const cardWidth = this.cards[0].offsetWidth + 20; // Include gap
-        this.container.style.transform = `translateX(-${this.currentIndex * cardWidth}px)`;
+        const translateX = this.currentIndex * cardWidth;
+        this.container.style.transform = `translateX(-${translateX}px)`;
         
         // Update dots
         const dots = this.dotsContainer.querySelectorAll('.dot');
+        const activeDotIndex = Math.floor(this.currentIndex / this.cardsPerView);
         dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === this.currentIndex);
+            dot.classList.toggle('active', index === activeDotIndex);
         });
         
         // Update button states
@@ -784,7 +789,7 @@ const testimonialsSlider = {
     startAutoSlide() {
         this.autoSlideInterval = setInterval(() => {
             if (this.currentIndex < this.cards.length - this.cardsPerView) {
-                this.goToSlide(this.currentIndex + 1);
+                this.goToSlide(this.currentIndex + this.cardsPerView);
             } else {
                 this.goToSlide(0);
             }
@@ -804,4 +809,27 @@ const testimonialsSlider = {
 // Initialize testimonials slider when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     testimonialsSlider.init();
-}); 
+});
+
+// Dark Mode Toggle
+const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+const currentTheme = localStorage.getItem('theme');
+
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    if (currentTheme === 'dark') {
+        toggleSwitch.checked = true;
+    }
+}
+
+function switchTheme(e) {
+    if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+toggleSwitch.addEventListener('change', switchTheme); 
